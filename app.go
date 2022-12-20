@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"os/exec"
 	"strings"
@@ -21,49 +20,15 @@ type App struct {
 	cams []*CameraData
 }
 
-type CameraData struct {
-	Id         string     `json:"id"`
-	SourceType SourceType `json:"sourceType"`
-	OutputType OutputType `json:"outputType"`
-	Name       string     `json:"name"`
-	Ip         string     `json:"ip"`
-	Port       int        `json:"port"`
-	DestPort   int        `json:"destPort"`
-	FileName   string     `json:"fileName"`
-	Running    bool       `json:"running"`
-}
-
-type SourceType int64
-
-const (
-	TCP SourceType = iota
-	RTMP
-)
-
-type OutputType int64
-
-const (
-	None OutputType = iota
-	File
-	Stream
-	Both
-)
-
 const (
 	CameraCFG      = "./data/cameras.json"
-	VideoOutFolder = "F:/temp/ffmpeg/"
+	VideoOutFolder = "./output/"
 )
 
-// var cams = []*CameraData{
-// 	{Id: randomUID(8), SourceType: TCP, Name: "Test", Ip: "camera.local", Port: 8888, DestPort: 2134, SaveToFile: true, FileName: "archive", Running: false},
-// 	{Id: randomUID(8), SourceType: TCP, Name: "Test 2", Ip: "camera.local", Port: 8888, DestPort: 2134, SaveToFile: true, FileName: "archive", Running: false},
-// 	{Id: randomUID(8), SourceType: TCP, Name: "Test 3", Ip: "camera.local", Port: 8888, DestPort: 2134, SaveToFile: true, FileName: "archive", Running: false},
-// 	{Id: randomUID(8), SourceType: RTMP, Name: "Test RTMP", Ip: "camera.local", Port: 8888, DestPort: 2134, SaveToFile: true, FileName: "archive", Running: false},
-// }
-
-// NewApp creates a new App application struct
 func NewApp() *App {
-	os.Mkdir("./data", 0o666)
+	if err := os.Mkdir("./data", 0o666); err != nil {
+		fmt.Println(err.Error())
+	}
 	content, err := os.ReadFile(CameraCFG)
 	cameras := []*CameraData{}
 	if err != nil {
@@ -81,6 +46,11 @@ func NewApp() *App {
 		if err != nil {
 			log.Fatal("Error during Unmarshal(): ", err)
 		}
+	}
+
+	// Set all cameras to not be running to avoid issues
+	for _, cam := range cameras {
+		cam.Running = false
 	}
 
 	return &App{
@@ -143,26 +113,26 @@ func (a *App) SaveCamera(data CameraData) CameraData {
 }
 
 func (a *App) StopCamera(id string) bool {
-	idx := slices.IndexFunc(a.cams, func(c *CameraData) bool { return c.Id == id })
-	if !a.cams[idx].Running {
+	cam := a.GetCamera(id)
+	if !cam.Running {
 		return false
 	}
 	if err := a.cmds[id].Process.Kill(); err != nil {
 		log.Fatal("failed to kill process: ", err)
 		return false
 	}
-	a.cams[idx].Running = false
+	cam.Running = false
 	return true
 }
 
 func (a *App) StartCamera(id string) bool {
-	idx := slices.IndexFunc(a.cams, func(c *CameraData) bool { return c.Id == id })
-	if a.cams[idx].Running {
+	cam := a.GetCamera(id)
+	if cam.Running {
 		return false
 	}
 
 	cmdRet := make(chan *exec.Cmd, 1)
-	go Run(cmdRet, a.cams[idx])
+	go Run(cmdRet, cam)
 	cmd := <-cmdRet
 	a.cmds[id] = cmd
 	return true
@@ -219,14 +189,4 @@ func Run(cmdRet chan *exec.Cmd, data *CameraData) {
 	}
 	fmt.Println("ffmpeg closing...")
 	data.Running = false
-}
-
-var LETTERS = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-
-func randomUID(length int) string {
-	b := make([]rune, length)
-	for i := range b {
-		b[i] = LETTERS[rand.Intn(len(LETTERS))]
-	}
-	return string(b)
 }

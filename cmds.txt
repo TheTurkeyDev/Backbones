@@ -1,0 +1,37 @@
+Pi:
+libcamera-vid -n -t 0 --width 1640 --height 922 --codec h264 --profile high --exposure sport --bitrate 5000000 --inline --listen -o tcp://0.0.0.0:8888 --tuning-file imx219_120.json
+
+Middleware:
+ffmpeg -re -fflags nobuffer -i tcp://camera.local:8888 -c:v copy -f tee -map 0:v "archive.mkv|[f=mpegts]udp://127.0.0.1:1234/"
+
+stream.sh:
+#!/bin/bash
+while true
+do
+        libcamera-vid -n -t 0 --width 1640 --height 922 --codec h264 --profile high --exposure sport --bitrate 5000000 --inline --listen -o tcp://0.0.0.0:8888 --tuning-file imx219_120.json
+        wait
+done
+
+camera.service:
+[Unit]
+Description=Run script at startup
+
+[Service]
+Type=simple
+User=pi
+RemainAfterExit=yes
+WorkingDirectory=/home/pi
+ExecStart=/home/pi/stream.sh
+TimeoutStartSec=0
+
+[Install]
+WantedBy=default.target
+
+
+RTMP server:
+ffmpeg -re -fflags nobuffer -flags low_delay -strict experimental -f flv -listen 1 -i rtmp://0.0.0.0:1935/live/app -c:v copy -f tee -map 0:v "archive-rtmp.mkv|[f=mpegts]udp://127.0.0.1:1234/"
+
+OBS:
+- 0 Network Buffer
+- udp:127.0.0.1:1234
+- mpegts

@@ -1,4 +1,4 @@
-import { ButtonRow, ContainedButton, OutlinedButton } from 'gobble-lib-react';
+import { ButtonRow, ContainedButton, Headline3 } from 'gobble-lib-react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useCameras } from '../hooks/use-camers';
@@ -10,18 +10,26 @@ const CameraListWrapper = styled.div`
     margin: 4px 16px;
 `;
 
+const TopBar = styled.div`
+    display: grid;
+    grid-template-columns: 1fr auto;
+    justify-items: center;
+    align-items: center;
+    margin-bottom: 16px;
+`;
+
 export const CameraList = () => {
     const nav = useNavigate();
     const cameras = useCameras();
 
     return (
         <div>
-            <h2>Cameras</h2>
-            <ButtonRow>
+            <TopBar>
+                <Headline3>Cameras</Headline3>
                 <ContainedButton onClick={() => nav('/cameras/0')}>
                     <i className='fa-solid fa-plus' />
                 </ContainedButton>
-            </ButtonRow>
+            </TopBar>
             <CameraListWrapper>
                 {
                     cameras.map(cam => <CameraCard key={cam.id} cam={cam} />)

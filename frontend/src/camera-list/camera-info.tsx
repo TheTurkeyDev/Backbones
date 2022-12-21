@@ -16,6 +16,7 @@ const BBWrapper = styled.div`
     gap: 8px;
     margin: 8px 16px;
     align-items: center;
+    justify-items: center;
 `;
 
 const CenteredCard = styled(Card)`

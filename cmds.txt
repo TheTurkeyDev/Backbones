@@ -1,5 +1,5 @@
 Pi:
-libcamera-vid -n -t 0 --width 1640 --height 922 --codec h264 --profile high --exposure sport --bitrate 5000000 --inline --listen -o tcp://0.0.0.0:8888 --tuning-file imx219_120.json
+libcamera-vid -n -t 0 --width 1640 --height 1232 --codec h264 --profile high --exposure sport --bitrate 5000000 --inline --listen -o tcp://0.0.0.0:8888 --tuning-file imx219_120.json
 
 Middleware:
 ffmpeg -re -fflags nobuffer -i tcp://camera.local:8888 -c:v copy -f tee -map 0:v "archive.mkv|[f=mpegts]udp://127.0.0.1:1234/"
@@ -8,7 +8,7 @@ stream.sh:
 #!/bin/bash
 while true
 do
-        libcamera-vid -n -t 0 --width 1640 --height 922 --codec h264 --profile high --exposure sport --bitrate 5000000 --inline --listen -o tcp://0.0.0.0:8888 --tuning-file imx219_120.json
+        libcamera-vid -n -t 0 --vflip --width 1640 --height 1232 --codec h264 --profile high --exposure sport --bitrate 5000000 --inline --listen -o tcp://0.0.0.0:8888 --tuning-file imx219_120.json
         wait
 done
 

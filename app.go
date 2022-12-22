@@ -26,9 +26,8 @@ const (
 )
 
 func NewApp() *App {
-	if err := os.Mkdir("./data", 0o666); err != nil {
-		fmt.Println(err.Error())
-	}
+	makeDir("./data")
+	makeDir(VideoOutFolder)
 	content, err := os.ReadFile(CameraCFG)
 	cameras := []*CameraData{}
 	if err != nil {
@@ -56,6 +55,12 @@ func NewApp() *App {
 	return &App{
 		cmds: make(map[string]*exec.Cmd),
 		cams: cameras,
+	}
+}
+
+func makeDir(dirPath string) {
+	if err := os.Mkdir(dirPath, 0o666); err != nil {
+		fmt.Println(err.Error())
 	}
 }
 

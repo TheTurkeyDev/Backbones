@@ -1,18 +1,14 @@
 import { Card, CardContent, ContainedButton, Headline3, Input, InputsWrapper, Option, OutlinedButton, Select } from 'gobble-lib-react';
-import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import styled from 'styled-components';
-import { StartCamera, StopCamera } from '../../wailsjs/go/main/App';
 import { BackButton } from '../components/back-button';
 import { useCamera } from '../hooks/use-camera';
-import { randomUID } from '../util/id';
-import { CameraData } from './camera-data';
 import { OutputType } from './output-type';
 import { SourceType } from './source-type';
 
 const BBWrapper = styled.div`
     display: grid;
-    grid-template-columns: auto 1fr auto auto;
+    grid-template-columns: auto 1fr auto auto auto;
     gap: 8px;
     margin: 8px 16px;
     align-items: center;
@@ -28,25 +24,7 @@ const CenteredCard = styled(Card)`
 export const CameraInfo = () => {
     const nav = useNavigate();
     const { id } = useParams();
-    const { camera: savedCamera, saveCamera, startCamera, stopCamera } = useCamera(id ?? '');
-
-    const [camera, setCamera] = useState<CameraData>({
-        id: randomUID(),
-        sourceType: SourceType.TCP,
-        outputType: OutputType.Both,
-        name: 'New Camera',
-        ip: '',
-        port: 0,
-        destPort: 0,
-        fileName: 'archive',
-        running: false
-    });
-
-    useEffect(() => {
-        if (savedCamera)
-            setCamera(savedCamera);
-    }, [savedCamera]);
-
+    const { camera, setCamera, saveCamera, resetCamera, unsavedChanges, startCamera, stopCamera } = useCamera(id ?? '');
 
     const toggleVideo = () => {
         if (camera)
@@ -63,7 +41,8 @@ export const CameraInfo = () => {
                 <BackButton to={'/'} />
                 <Headline3>{camera.name}</Headline3>
                 <OutlinedButton onClick={toggleVideo}>{camera.running ? 'Stop' : 'Start'}</OutlinedButton>
-                <ContainedButton onClick={save}>Save</ContainedButton>
+                <OutlinedButton disabled={!unsavedChanges} onClick={resetCamera}>Reset</OutlinedButton>
+                <ContainedButton disabled={!unsavedChanges} onClick={save}>Save</ContainedButton>
             </BBWrapper>
             <CenteredCard>
                 <CardContent>

@@ -32,10 +32,12 @@ export const useCamera = (id: string) => {
             }
         });
 
-        GetCamera(id).then(data => {
-            setCamera(data);
-            setOriginalCamera(data);
-        });
+        if (!id) {
+            GetCamera(id).then(data => {
+                setCamera(data);
+                setOriginalCamera(data);
+            });
+        }
 
         return () => {
             window.runtime.EventsOff('onCameraStop');

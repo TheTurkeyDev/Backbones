@@ -103,6 +103,9 @@ func (a *App) GetCameras() []*CameraData {
 
 func (a *App) GetCamera(id string) *CameraData {
 	idx := slices.IndexFunc(a.cams, func(c *CameraData) bool { return c.Id == id })
+	if idx == -1 {
+		return nil
+	}
 	return a.cams[idx]
 }
 

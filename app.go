@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"golang.org/x/exp/slices"
 )
 
@@ -137,13 +138,13 @@ func (a *App) StartCamera(id string) bool {
 	}
 
 	cmdRet := make(chan *exec.Cmd, 1)
-	go Run(cmdRet, cam)
+	go Run(cmdRet, cam, a.ctx)
 	cmd := <-cmdRet
 	a.cmds[id] = cmd
 	return true
 }
 
-func Run(cmdRet chan *exec.Cmd, data *CameraData) {
+func Run(cmdRet chan *exec.Cmd, data *CameraData, ctx context.Context) {
 	fmt.Println("Starting ffmpeg...")
 	data.Running = true
 	var ffmpegCmd strings.Builder
@@ -193,5 +194,6 @@ func Run(cmdRet chan *exec.Cmd, data *CameraData) {
 		}
 	}
 	fmt.Println("ffmpeg closing...")
+	runtime.EventsEmit(ctx, "onCameraStop", data.Id)
 	data.Running = false
 }

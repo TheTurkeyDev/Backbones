@@ -9,5 +9,26 @@ export const useCameras = () => {
         GetCameras().then(setCameras);
     }, []);
 
+    useEffect(() => {
+        window.runtime.EventsOn('onCameraStop', (cameraId: string) => {
+            const cam = cameras.findIndex(c => c.id === cameraId);
+            if (cam === -1)
+                return;
+
+            setCameras([
+                ...cameras.slice(0, cam),
+                {
+                    ...cameras[cam],
+                    running: false
+                },
+                ...cameras.slice(cam + 1),
+            ]);
+        });
+
+        return () => {
+            window.runtime.EventsOff('onCameraStop');
+        };
+    }, [cameras]);
+
     return cameras;
 };

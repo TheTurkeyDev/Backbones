@@ -3,6 +3,7 @@ import { GetCamera, SaveCamera, StartCamera, StopCamera } from '../../wailsjs/go
 import { CameraData } from '../camera-list/camera-data';
 import { OutputType } from '../camera-list/output-type';
 import { SourceType } from '../camera-list/source-type';
+import { CameraStateChangeData } from '../events/camera-state-change-data';
 import { randomUID } from '../util/id';
 
 const defaultCamera: CameraData = {
@@ -23,10 +24,23 @@ export const useCamera = (id: string) => {
     const [unsavedChanges, setUnsavedChanges] = useState(false);
 
     useEffect(() => {
+        window.runtime.EventsOn('onCameraStop', (cameraId: string) => {
+            if (cameraId === id) {
+                setCamera({
+                    ...camera,
+                    running: false
+                });
+            }
+        });
+
         GetCamera(id).then(data => {
             setCamera(data);
             setOriginalCamera(data);
         });
+
+        return () => {
+            window.runtime.EventsOff('onCameraStop');
+        };
     }, [id]);
 
     const resetCamera = () => {

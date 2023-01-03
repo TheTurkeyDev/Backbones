@@ -22,12 +22,13 @@ type App struct {
 }
 
 const (
-	CameraCFG      = "./data/cameras.json"
+	DataFolder     = "./data/"
+	CameraCFG      = DataFolder + "cameras.json"
 	VideoOutFolder = "./output/"
 )
 
 func NewApp() *App {
-	makeDir("./data")
+	makeDir(DataFolder)
 	makeDir(VideoOutFolder)
 	content, err := os.ReadFile(CameraCFG)
 	cameras := []*CameraData{}
@@ -60,7 +61,7 @@ func NewApp() *App {
 }
 
 func makeDir(dirPath string) {
-	if err := os.Mkdir(dirPath, 0o666); err != nil {
+	if err := os.Mkdir(dirPath, 0o764); err != nil {
 		fmt.Println(err.Error())
 	}
 }
@@ -71,7 +72,7 @@ func SaveCamerasConfig(cams []*CameraData) bool {
 		log.Fatal("Error during Marshal(): ", err)
 		return false
 	}
-	err = os.WriteFile(CameraCFG, d1, 0o644)
+	err = os.WriteFile(CameraCFG, d1, 0o764)
 	if err != nil {
 		log.Fatal("Error during Writing: ", err)
 		return false

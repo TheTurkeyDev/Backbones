@@ -32,7 +32,7 @@ export const useCamera = (id: string) => {
             }
         });
 
-        if (!id) {
+        if (id !== '0') {
             GetCamera(id).then(data => {
                 setCamera(data);
                 setOriginalCamera(data);
